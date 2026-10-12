@@ -74,12 +74,16 @@ func openStore(path, binding string) (*tokenStore, error) {
 	}
 	return store, nil
 }
-func (s *tokenStore) initialize() error {
+func (s *tokenStore) initialize() (retErr error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && !errors.Is(rollbackErr, sql.ErrTxDone) {
+			retErr = errors.Join(retErr, rollbackErr)
+		}
+	}()
 	var version int
 	if err := tx.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return err
@@ -127,12 +131,16 @@ func (s *tokenStore) valid(ctx context.Context, hash, resource string) (bool, er
 
 // issue commits the replacement pair and consumption of a refresh token in one
 // transaction. Failed writes leave the old refresh token usable; replay is rejected.
-func (s *tokenStore) issue(ctx context.Context, resource, refreshHash string) (string, string, error) {
+func (s *tokenStore) issue(ctx context.Context, resource, refreshHash string) (access, refresh string, retErr error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return "", "", err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && !errors.Is(rollbackErr, sql.ErrTxDone) {
+			retErr = errors.Join(retErr, rollbackErr)
+		}
+	}()
 	now := time.Now()
 	if _, err := tx.ExecContext(ctx, `DELETE FROM oauth_tokens WHERE expires_at<=?`, now.Unix()); err != nil {
 		return "", "", err
@@ -159,7 +167,7 @@ func (s *tokenStore) issue(ctx context.Context, resource, refreshHash string) (s
 			return "", "", errCapacity
 		}
 	}
-	access, refresh := random(), random()
+	access, refresh = random(), random()
 	for _, v := range []struct {
 		kind, raw string
 		expiry    time.Time
