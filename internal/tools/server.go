@@ -1,4 +1,3 @@
-Sourcing ~/.zshenv
 package tools
 
 import (
