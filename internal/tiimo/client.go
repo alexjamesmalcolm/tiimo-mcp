@@ -90,7 +90,7 @@ func (c *Client) Do(ctx context.Context, method, path string, body any) (any, er
 		}
 		return nil, errors.New("tiimo request failed or timed out")
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		switch res.StatusCode {
 		case 401:
