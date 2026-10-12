@@ -2,7 +2,7 @@
 *.token
 .DS_Store
 bin/
-tiimo-mcp
+./tiimo-mcp
 
 *.db
 *.db-wal
