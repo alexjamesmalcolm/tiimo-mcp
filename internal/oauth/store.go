@@ -79,7 +79,7 @@ func (s *tokenStore) initialize() error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	var version int
 	if err := tx.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return err
