@@ -78,7 +78,11 @@ func main() {
 		if e != nil {
 			log.Fatal(e)
 		}
-		defer auth.Close()
+		defer func() {
+			if err := auth.Close(); err != nil {
+				log.Printf("close OAuth token store: %v", err)
+			}
+		}()
 		auth.Register(mux)
 		h = auth.Protect(handler)
 		host = "0.0.0.0"
