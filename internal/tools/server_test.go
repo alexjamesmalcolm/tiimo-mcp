@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"tiimo-mcp/internal/tiimo"
@@ -137,6 +138,128 @@ func TestNativeSchedulePreservesChecklist(t *testing.T) {
 	}
 }
 
+func TestScheduleTaskSupportsAllTimeOfDayChoices(t *testing.T) {
+	tests := []struct {
+		name     string
+		grouping any
+	}{
+		{name: "Anytime", grouping: nil},
+		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}},
+		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
+		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var body tiimo.Object
+			writes := 0
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				if r.Method == http.MethodGet {
+					_ = json.NewEncoder(w).Encode(tiimo.Object{"taskId": testTask, "title": "Probe", "notes": "", "duration": 600, "isChecked": false, "iconType": "UnicodeEmoji", "iconId": "📚", "tagIds": []string{}, "subTasks": []any{}})
+					return
+				}
+				writes++
+				_ = json.NewDecoder(r.Body).Decode(&body)
+				_ = json.NewEncoder(w).Encode(tiimo.Object{"activityId": testTask})
+			}))
+			defer ts.Close()
+			c := tiimo.New(testProfile, "", false)
+			c.BaseURL = ts.URL
+			c.Token = func() (string, error) { return "mock", nil }
+			cs := session(t, c)
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "schedule_task", Arguments: map[string]any{
+				"taskId": testTask, "date": "2026-10-13", "timeOfDay": tt.name,
+			}})
+			if err != nil || res.IsError {
+				t.Fatalf("schedule task: %v %#v", err, res)
+			}
+			if writes != 1 || body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["duration"] != 600.0 {
+				t.Fatalf("unexpected conversion body: writes=%d body=%#v", writes, body)
+			}
+			if !reflect.DeepEqual(body["grouping"], tt.grouping) {
+				t.Fatalf("grouping = %#v; want %#v", body["grouping"], tt.grouping)
+			}
+		})
+	}
+}
+
+func TestCreateActivitySupportsAllTimeOfDayChoices(t *testing.T) {
+	tests := []struct {
+		name     string
+		grouping any
+	}{
+		{name: "Anytime", grouping: nil},
+		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}},
+		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
+		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var body tiimo.Object
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				if r.Method != http.MethodPost {
+					t.Errorf("unexpected method %s", r.Method)
+				}
+				_ = json.NewDecoder(r.Body).Decode(&body)
+				_ = json.NewEncoder(w).Encode(tiimo.Object{"activityId": testTask})
+			}))
+			defer ts.Close()
+			c := tiimo.New(testProfile, "", false)
+			c.BaseURL = ts.URL
+			c.Token = func() (string, error) { return "mock", nil }
+			cs := session(t, c)
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "create_activity", Arguments: map[string]any{
+				"title": "Probe", "durationMinutes": 10, "date": "2026-10-13", "timeOfDay": tt.name,
+			}})
+			if err != nil || res.IsError {
+				t.Fatalf("create activity: %v %#v", err, res)
+			}
+			if body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["isAllDay"] != false {
+				t.Fatalf("unexpected activity body: %#v", body)
+			}
+			if !reflect.DeepEqual(body["grouping"], tt.grouping) {
+				t.Fatalf("grouping = %#v; want %#v", body["grouping"], tt.grouping)
+			}
+		})
+	}
+}
+
+func TestScheduleInputSchemaShowsDateTimeOrDaypartChoices(t *testing.T) {
+	c := tiimo.New(testProfile, "", false)
+	cs := session(t, c)
+	listed, err := cs.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var schema map[string]any
+	for _, tool := range listed.Tools {
+		if tool.Name != "schedule_task" {
+			continue
+		}
+		b, err := json.Marshal(tool.InputSchema)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(b, &schema); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if schema == nil {
+		t.Fatal("schedule_task schema missing")
+	}
+	props := schema["properties"].(map[string]any)
+	daypart := props["timeOfDay"].(map[string]any)
+	got := daypart["enum"].([]any)
+	want := []any{"Anytime", "Morning", "Afternoon", "Evening"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("timeOfDay enum = %#v; want %#v", got, want)
+	}
+	if len(schema["oneOf"].([]any)) != 2 {
+		t.Fatalf("schema should expose two exclusive schedule choices: %#v", schema["oneOf"])
+	}
+}
+
 func TestReschedulePreservesChecklistAndRejectsRepeats(t *testing.T) {
 	repeating := false
 	writes := 0
@@ -175,5 +298,41 @@ func TestReschedulePreservesChecklistAndRejectsRepeats(t *testing.T) {
 	res, e = cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "reschedule_activity", Arguments: args})
 	if e != nil || !res.IsError || writes != 1 {
 		t.Fatal("repeating activity modified")
+	}
+}
+
+func TestRescheduleActivitySetsOrClearsTimeOfDay(t *testing.T) {
+	var body tiimo.Object
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodGet {
+			_ = json.NewEncoder(w).Encode(tiimo.Object{"activityId": testTask, "title": "Read", "description": "keep", "duration": 600, "isRepeating": false, "recurrenceType": "noRepeat", "hasTimedSubtasks": false, "grouping": tiimo.Object{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}})
+			return
+		}
+		body = tiimo.Object{}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer ts.Close()
+	c := tiimo.New(testProfile, "", false)
+	c.BaseURL = ts.URL
+	c.Token = func() (string, error) { return "mock", nil }
+	cs := session(t, c)
+	for _, tt := range []struct {
+		name         string
+		wantGrouping any
+	}{
+		{name: "Afternoon", wantGrouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
+		{name: "Anytime", wantGrouping: nil},
+	} {
+		res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "reschedule_activity", Arguments: map[string]any{
+			"activityId": testTask, "date": "2026-10-13", "timeOfDay": tt.name,
+		}})
+		if err != nil || res.IsError {
+			t.Fatalf("reschedule %s: %v %#v", tt.name, err, res)
+		}
+		if !reflect.DeepEqual(body["grouping"], tt.wantGrouping) {
+			t.Fatalf("%s grouping = %#v; want %#v", tt.name, body["grouping"], tt.wantGrouping)
+		}
 	}
 }
