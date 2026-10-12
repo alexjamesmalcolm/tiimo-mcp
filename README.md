@@ -1,4 +1,3 @@
-Sourcing ~/.zshenv
 # Tiimo MCP — personal Go server
 
 Read and manage Tiimo from an MCP client without operating the web UI. Built with the official Go MCP SDK. Runs as one Go process with embedded SQLite; no Node, separate database server, or background AI service. Railway terminates HTTPS in front of the binary.
