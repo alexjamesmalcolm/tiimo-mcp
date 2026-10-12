@@ -57,7 +57,7 @@ func TestRedirectDoesNotForwardCredentials(t *testing.T) {
 	calls := 0
 	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++ }))
 	defer other.Close()
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, other.URL, 302) }))
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, other.URL, http.StatusFound) }))
 	defer ts.Close()
 	c := New("", "", false)
 	c.BaseURL = ts.URL

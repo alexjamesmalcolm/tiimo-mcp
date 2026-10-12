@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"tiimo-mcp/internal/tiimo"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 const testProfile = "11111111-1111-1111-1111-111111111111"

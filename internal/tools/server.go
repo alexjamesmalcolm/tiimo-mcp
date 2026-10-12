@@ -10,15 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"tiimo-mcp/internal/tiimo"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 var uuidRE = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 func id(s string) error {
 	if !uuidRE.MatchString(s) {
-		return errors.New("Expected a UUID returned by Tiimo")
+		return errors.New("expected a UUID returned by Tiimo")
 	}
 	return nil
 }
@@ -27,7 +28,7 @@ func profile(c *tiimo.Client, p string) (string, error) {
 		p = c.ProfileID
 	}
 	if err := id(p); err != nil {
-		return "", errors.New("Supply profileId from list_profiles or set TIIMO_PROFILE_ID")
+		return "", errors.New("supply profileId from list_profiles or set TIIMO_PROFILE_ID")
 	}
 	return "/api/profiles/" + p, nil
 }
@@ -40,13 +41,13 @@ func seconds(m int) (int, error) {
 func stamp(s string) (time.Time, error) {
 	t, e := time.Parse(time.RFC3339, s)
 	if e != nil {
-		return t, errors.New("Use RFC3339 time with an explicit offset, e.g. 2026-10-07T10:00:00-04:00")
+		return t, errors.New("use RFC3339 time with an explicit offset, e.g. 2026-10-07T10:00:00-04:00")
 	}
 	return t, nil
 }
 func nonempty(s string) error {
 	if strings.TrimSpace(s) == "" || len(s) > 2000 {
-		return errors.New("Title must contain 1–2000 characters")
+		return errors.New("title must contain 1–2000 characters")
 	}
 	return nil
 }
@@ -181,10 +182,10 @@ func editTask(ctx context.Context, c *tiimo.Client, p, task string, changes tiim
 		return nil, err
 	}
 	if obj["taskId"] != task {
-		return nil, errors.New("Tiimo task ID mismatch; refusing to update")
+		return nil, errors.New("tiimo task ID mismatch; refusing to update")
 	}
 	if _, ok := obj["duration"]; !ok {
-		return nil, errors.New("Incomplete task response; refusing to update")
+		return nil, errors.New("incomplete task response; refusing to update")
 	}
 	body := tiimo.UpdateTaskBody(obj, changes)
 	return c.Do(ctx, "PUT", base+"/todo-tasks", body)
@@ -220,7 +221,7 @@ func New(c *tiimo.Client) *mcp.Server {
 		switch a.GroupingType {
 		case "Manual", "Duration", "Priority", "Eisenhower":
 		default:
-			return nil, errors.New("Invalid groupingType")
+			return nil, errors.New("invalid groupingType")
 		}
 		return c.Do(ctx, "GET", p+"/todo-tasks?groupingType="+a.GroupingType, nil)
 	})
@@ -248,7 +249,7 @@ func New(c *tiimo.Client) *mcp.Server {
 			return nil, e
 		}
 		if !to.After(from) || to.Sub(from) > 31*24*time.Hour {
-			return nil, errors.New("Range must be positive and at most 31 days")
+			return nil, errors.New("range must be positive and at most 31 days")
 		}
 		q := url.Values{"fromDate": {a.From}, "toDate": {a.To}}
 		return c.Do(ctx, "GET", p+"/activities?"+q.Encode(), nil)
@@ -297,7 +298,7 @@ func New(c *tiimo.Client) *mcp.Server {
 			body["duration"] = 0
 		}
 		if len(a.Subtasks) > 100 {
-			return nil, errors.New("At most 100 subtasks")
+			return nil, errors.New("at most 100 subtasks")
 		}
 		sub := []tiimo.Object{}
 		for i, t := range a.Subtasks {
@@ -318,7 +319,7 @@ func New(c *tiimo.Client) *mcp.Server {
 			changes["isChecked"] = *a.Completed
 		}
 		if len(changes) == 0 {
-			return nil, errors.New("Supply at least one change")
+			return nil, errors.New("supply at least one change")
 		}
 		return editTask(ctx, c, a.ProfileID, a.TaskID, changes)
 	})
@@ -351,7 +352,7 @@ func New(c *tiimo.Client) *mcp.Server {
 		}
 		sec, e := seconds(a.DurationMinutes)
 		if e != nil || sec == 0 {
-			return nil, errors.New("Scheduled duration must be 1–10080 minutes")
+			return nil, errors.New("scheduled duration must be 1-10080 minutes")
 		}
 		body := tiimo.Object{"title": a.Title, "description": a.Description, "startTime": a.Start, "endTime": start.Add(time.Duration(sec) * time.Second).Format(time.RFC3339), "duration": sec, "type": "Scheduled", "recurrenceType": "noRepeat", "isAllDay": false, "iconType": "None"}
 		if a.Emoji != "" {
@@ -386,14 +387,14 @@ func New(c *tiimo.Client) *mcp.Server {
 			return nil, e
 		}
 		if obj["taskId"] != a.TaskID {
-			return nil, errors.New("Task ID mismatch")
+			return nil, errors.New("task ID mismatch")
 		}
 		if obj["isChecked"] == true {
-			return nil, errors.New("Reopen this completed task before scheduling it")
+			return nil, errors.New("reopen this completed task before scheduling it")
 		}
 		sec, ok := obj["duration"].(float64)
 		if !ok {
-			return nil, errors.New("Task duration missing")
+			return nil, errors.New("task duration missing")
 		}
 		if a.DurationMinutes != nil {
 			n, e := seconds(*a.DurationMinutes)
@@ -403,11 +404,11 @@ func New(c *tiimo.Client) *mcp.Server {
 			sec = float64(n)
 		}
 		if sec <= 0 || sec > 604800 {
-			return nil, errors.New("Supply a positive durationMinutes for this task")
+			return nil, errors.New("supply a positive durationMinutes for this task")
 		}
 		title, ok := obj["title"].(string)
 		if !ok {
-			return nil, errors.New("Task title missing")
+			return nil, errors.New("task title missing")
 		}
 		if e := nonempty(title); e != nil {
 			return nil, e
@@ -455,12 +456,12 @@ func New(c *tiimo.Client) *mcp.Server {
 		}
 		sec, ok := obj["duration"].(float64)
 		if !ok {
-			return nil, errors.New("Activity duration missing; refusing to update")
+			return nil, errors.New("activity duration missing; refusing to update")
 		}
 		if a.DurationMinutes != nil {
 			n, e := seconds(*a.DurationMinutes)
 			if e != nil || n == 0 {
-				return nil, errors.New("Invalid durationMinutes")
+				return nil, errors.New("invalid durationMinutes")
 			}
 			sec = float64(n)
 		}
@@ -516,16 +517,16 @@ func New(c *tiimo.Client) *mcp.Server {
 }
 func editable(o tiimo.Object) error {
 	if _, ok := o["isRepeating"]; !ok {
-		return errors.New("Incomplete activity response; refusing to modify")
+		return errors.New("incomplete activity response; refusing to modify")
 	}
 	if o["isRepeating"] == true || o["isReadOnly"] == true {
-		return errors.New("Repeating or read-only activities are excluded")
+		return errors.New("repeating or read-only activities are excluded")
 	}
 	if v, ok := o["externalEventId"].(string); ok && v != "" {
-		return errors.New("External calendar events are excluded")
+		return errors.New("external calendar events are excluded")
 	}
 	if o["hasTimedSubtasks"] == true {
-		return fmt.Errorf("Timed routines are excluded from rescheduling")
+		return fmt.Errorf("timed routines are excluded from rescheduling")
 	}
 	return nil
 }

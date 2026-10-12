@@ -35,13 +35,13 @@ func openStore(path, binding string) (*tokenStore, error) {
 		}
 		info, err := os.Lstat(dir)
 		if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-			return nil, errors.New("Auth database directory must be a real private directory")
+			return nil, errors.New("auth database directory must be a real private directory")
 		}
 		if err := os.Chmod(dir, 0700); err != nil {
 			return nil, err
 		}
 		if info, err := os.Lstat(absolute); err == nil && (!info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0) {
-			return nil, errors.New("Auth database must be a regular file")
+			return nil, errors.New("auth database must be a regular file")
 		} else if err != nil && !os.IsNotExist(err) {
 			return nil, err
 		}
@@ -85,7 +85,7 @@ func (s *tokenStore) initialize() error {
 		return err
 	}
 	if version > 1 {
-		return errors.New("Auth database schema is newer than this server")
+		return errors.New("auth database schema is newer than this server")
 	}
 	for _, stmt := range []string{
 		`CREATE TABLE IF NOT EXISTS oauth_meta (id INTEGER PRIMARY KEY CHECK(id=1), binding TEXT NOT NULL)`,

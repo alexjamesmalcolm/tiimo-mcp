@@ -44,7 +44,7 @@ func New(c Config) (*Provider, error) {
 	}
 	c.PublicURL = strings.TrimRight(c.PublicURL, "/")
 	if c.ClientID == "" || len(c.ClientSecret) < 32 || len(c.Password) < 32 {
-		return nil, errors.New("Set OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET and MCP_LOGIN_PASSWORD (secrets at least 32 characters)")
+		return nil, errors.New("set OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET and MCP_LOGIN_PASSWORD (secrets at least 32 characters)")
 	}
 	if len(c.RedirectURIs) == 0 {
 		c.RedirectURIs = []string{"https://chatgpt.com/connector_platform_oauth_redirect"}
@@ -52,13 +52,13 @@ func New(c Config) (*Provider, error) {
 	for _, s := range c.RedirectURIs {
 		u, e := url.Parse(s)
 		if e != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.Fragment != "" {
-			return nil, errors.New("Redirect URIs must be exact HTTPS URLs")
+			return nil, errors.New("redirect URIs must be exact HTTPS URLs")
 		}
 	}
 	binding, _ := json.Marshal([]string{c.PublicURL, c.ClientID, c.ClientSecret, c.Password})
 	store, err := openStore(c.DBPath, digest(string(binding)))
 	if err != nil {
-		return nil, errors.New("Cannot open OAuth SQLite database; check AUTH_DB_PATH and directory permissions")
+		return nil, errors.New("cannot open OAuth SQLite database; check AUTH_DB_PATH and directory permissions")
 	}
 	return &Provider{cfg: c, pending: map[string]grant{}, codes: map[string]grant{}, store: store}, nil
 }
@@ -151,7 +151,7 @@ func (p *Provider) authorize(w http.ResponseWriter, r *http.Request) {
 	defer p.mu.Unlock()
 	p.clean()
 	if p.limited() || len(p.pending) >= 128 {
-		http.Error(w, "Try again later", 429)
+		http.Error(w, "Try again later", http.StatusTooManyRequests)
 		return
 	}
 	key := random()
@@ -180,16 +180,16 @@ func (p *Provider) approve(w http.ResponseWriter, r *http.Request) {
 	key := digest(r.PostForm.Get("request"))
 	g, ok := p.pending[key]
 	if p.limited() {
-		http.Error(w, "Try again later", 429)
+		http.Error(w, "Try again later", http.StatusTooManyRequests)
 		return
 	}
 	if !ok || !equal(r.PostForm.Get("password"), p.cfg.Password) {
-		http.Error(w, "Invalid or expired connection request", 403)
+		http.Error(w, "Invalid or expired connection request", http.StatusForbidden)
 		return
 	}
 	delete(p.pending, key)
 	if len(p.codes) >= 128 {
-		http.Error(w, "Try again later", 429)
+		http.Error(w, "Try again later", http.StatusTooManyRequests)
 		return
 	}
 	code := random()

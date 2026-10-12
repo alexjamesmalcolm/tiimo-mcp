@@ -14,10 +14,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"tiimo-mcp/internal/oauth"
 	"tiimo-mcp/internal/tiimo"
 	"tiimo-mcp/internal/tools"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 func main() {
@@ -92,13 +93,13 @@ func main() {
 	secured := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		if origin := r.Header.Get("Origin"); origin != "" && origin != strings.TrimRight(public, "/") {
-			http.Error(w, "Origin denied", 403)
+			http.Error(w, "Origin denied", http.StatusForbidden)
 			return
 		}
 		if public == "" {
 			u, e := url.Parse("http://" + r.Host)
 			if e != nil || (u.Hostname() != "127.0.0.1" && u.Hostname() != "localhost" && u.Hostname() != "[::1]") {
-				http.Error(w, "Host denied", 403)
+				http.Error(w, "Host denied", http.StatusForbidden)
 				return
 			}
 		}
