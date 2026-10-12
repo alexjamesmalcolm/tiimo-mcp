@@ -1,3 +1,4 @@
+Sourcing ~/.zshenv
 package tools
 
 import (
@@ -254,7 +255,8 @@ func intPtr(v int) *int { return &v }
 
 // activityTimes resolves either an explicit instant or a date plus daypart.
 // Tiimo's wire grouping uses Day for the UI's Afternoon. The API contract has
-// no Anytime enum, so the wire representation used here omits grouping.
+// no Anytime enum, so date/timeOfDay callers must send grouping: null for
+// Anytime instead of omitting it (which task conversion defaults to Morning).
 func activityTimes(schedule ScheduleFields, durationSeconds int) (string, string, *tiimo.Object, error) {
 	if durationSeconds <= 0 {
 		return "", "", nil, errors.New("scheduled duration must be positive")
@@ -464,6 +466,10 @@ func New(c *tiimo.Client) *mcp.Server {
 		body := tiimo.Object{"title": a.Title, "description": a.Description, "startTime": start, "endTime": end, "duration": sec, "type": "Scheduled", "recurrenceType": "noRepeat", "isAllDay": false, "iconType": "None"}
 		if grouping != nil {
 			body["grouping"] = *grouping
+		} else if a.Date != "" {
+			// An explicit null represents Anytime. Omitting grouping makes
+			// Tiimo's conversion endpoint default the new activity to Morning.
+			body["grouping"] = nil
 		}
 		if a.Emoji != "" {
 			body["iconId"] = a.Emoji
@@ -532,6 +538,10 @@ func New(c *tiimo.Client) *mcp.Server {
 		body := tiimo.Object{"title": title, "description": obj["notes"], "startTime": start, "endTime": end, "duration": sec, "type": "Scheduled", "recurrenceType": "noRepeat", "isAllDay": false, "iconType": obj["iconType"], "iconId": obj["iconId"], "backgroundColor": obj["color"], "tagIds": obj["tagIds"]}
 		if grouping != nil {
 			body["grouping"] = *grouping
+		} else if a.Date != "" {
+			// An explicit null represents Anytime. Omitting grouping makes
+			// Tiimo's conversion endpoint default the new activity to Morning.
+			body["grouping"] = nil
 		}
 		if subs, ok := obj["subTasks"].([]any); ok && len(subs) > 0 {
 			items := []any{}
@@ -595,7 +605,11 @@ func New(c *tiimo.Client) *mcp.Server {
 		body["endTime"] = end
 		body["duration"] = sec
 		if grouping == nil {
-			delete(body, "grouping")
+			if a.Date != "" {
+				body["grouping"] = nil
+			} else {
+				delete(body, "grouping")
+			}
 		} else {
 			body["grouping"] = *grouping
 		}
