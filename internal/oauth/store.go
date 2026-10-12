@@ -132,7 +132,7 @@ func (s *tokenStore) issue(ctx context.Context, resource, refreshHash string) (s
 	if err != nil {
 		return "", "", err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	now := time.Now()
 	if _, err := tx.ExecContext(ctx, `DELETE FROM oauth_tokens WHERE expires_at<=?`, now.Unix()); err != nil {
 		return "", "", err
