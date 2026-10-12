@@ -1,0 +1,22 @@
+name: Go checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache: true
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: CGO_ENABLED=1 go build -tags sqlite_omit_load_extension -buildvcs=false -trimpath -ldflags="-s -w" ./cmd/tiimo-mcp
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t tiimo-mcp:test .
+      - run: ./docker/test-permissions.sh tiimo-mcp:test

@@ -1,0 +1,10 @@
+.env
+*.token
+.DS_Store
+bin/
+tiimo-mcp
+
+*.db
+*.db-wal
+*.db-shm
+*.db-journal

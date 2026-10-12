@@ -1,0 +1,10 @@
+.git
+.env
+*.token
+bin
+*.zip
+
+*.db
+*.db-wal
+*.db-shm
+*.db-journal

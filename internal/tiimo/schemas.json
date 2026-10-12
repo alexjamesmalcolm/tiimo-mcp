@@ -1,0 +1,917 @@
+{
+  "WebApi.Todo.Models.CreateTodoTaskRequest": {
+    "type": "object",
+    "properties": {
+      "todoTaskListId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "subTasks": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/WebApi.Todo.Models.CreateTodoSubTaskRequestBody"
+        }
+      },
+      "grouping": {
+        "$ref": "#/components/schemas/WebApi.Todo.Models.CreateToDoGroupingRequestBody"
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Title should be what todo task is supposed to do"
+      },
+      "notes": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Additional information about the todo task"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "Estimation about how long the task will take in seconds",
+        "format": "int32"
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Emoji unicode representation"
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "iconUrl": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Should be null"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Background color for icon in hex format"
+      },
+      "tagIds": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "description": "Category for todo task, e.g. School, Self-Care, Work"
+      },
+      "isChecked": {
+        "type": "boolean",
+        "description": "This reflects if the task is done"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Todo.Models.CreateTodoSubTaskRequestBody": {
+    "type": "object",
+    "properties": {
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Emoji unicode representation"
+      },
+      "iconUrl": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Should be null"
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Title should be what todo sub task is supposed to do"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Background color for icon in hex format"
+      },
+      "isChecked": {
+        "type": "boolean",
+        "description": "This reflects if the subtask is done"
+      },
+      "index": {
+        "type": "integer",
+        "description": "Sort order of the subtasks",
+        "format": "int32"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Icons.Models.IconType": {
+    "enum": [
+      "None",
+      "TiimoIcon",
+      "LegacyTiimoIcon",
+      "UserIcon",
+      "UnicodeEmoji"
+    ],
+    "type": "string"
+  },
+  "WebApi.Todo.Models.CreateToDoGroupingRequestBody": {
+    "type": "object",
+    "properties": {
+      "groupingType": {
+        "$ref": "#/components/schemas/WebApi.Data.Todo.Entities.GroupingType"
+      },
+      "groupLabel": {
+        "$ref": "#/components/schemas/WebApi.Data.Todo.Entities.GroupLabel"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Todo.Entities.GroupingType": {
+    "enum": [
+      "Manual",
+      "Duration",
+      "Priority",
+      "Eisenhower"
+    ],
+    "type": "string"
+  },
+  "WebApi.Data.Todo.Entities.GroupLabel": {
+    "enum": [
+      "Todo",
+      "Low",
+      "Medium",
+      "High",
+      "DoNow",
+      "Schedule",
+      "Delegate",
+      "Eliminate",
+      "LessThan15m",
+      "Between15to30m",
+      "Between30To60m",
+      "MoreThan60m"
+    ],
+    "type": "string"
+  },
+  "WebApi.Todo.Models.UpdateTodoTaskRequest": {
+    "type": "object",
+    "properties": {
+      "taskId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "todoTaskListId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "currentGrouping": {
+        "$ref": "#/components/schemas/WebApi.Data.Todo.Entities.GroupingType"
+      },
+      "subTasks": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/WebApi.Todo.Models.UpdateTodoSubTaskRequestBody"
+        }
+      },
+      "grouping": {
+        "$ref": "#/components/schemas/WebApi.Todo.Models.UpdateToDoGroupingRequestBody"
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Title should be what todo task is supposed to do"
+      },
+      "notes": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Additional information about the todo task"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "Estimation about how long the task will take in seconds",
+        "format": "int32"
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Emoji unicode representation"
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "iconUrl": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Should be null"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Background color for icon in hex format"
+      },
+      "tagIds": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "description": "Category for todo task, e.g. School, Self-Care, Work"
+      },
+      "isChecked": {
+        "type": "boolean",
+        "description": "This reflects if the task is done"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Todo.Models.UpdateTodoSubTaskRequestBody": {
+    "type": "object",
+    "properties": {
+      "subTaskId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Emoji unicode representation"
+      },
+      "iconUrl": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Should be null"
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Title should be what todo sub task is supposed to do"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "Background color for icon in hex format"
+      },
+      "isChecked": {
+        "type": "boolean",
+        "description": "This reflects if the subtask is done"
+      },
+      "index": {
+        "type": "integer",
+        "description": "Sort order of the subtasks",
+        "format": "int32"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Todo.Models.UpdateToDoGroupingRequestBody": {
+    "type": "object",
+    "properties": {
+      "groupingType": {
+        "$ref": "#/components/schemas/WebApi.Data.Todo.Entities.GroupingType"
+      },
+      "groupLabel": {
+        "$ref": "#/components/schemas/WebApi.Data.Todo.Entities.GroupLabel"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Calendar.Models.ActivityForCreationDto": {
+    "required": [
+      "startTime",
+      "title"
+    ],
+    "type": "object",
+    "properties": {
+      "title": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "type": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.InsertionType"
+      },
+      "sortPriority": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "description": "If null, it will be autofilled with the profiles max value + 10",
+        "format": "int32"
+      },
+      "startTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "endTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "duration": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "isAllDay": {
+        "type": "boolean"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "recurrenceType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.PreconfiguredRepetitionType"
+      },
+      "repetition": {
+        "$ref": "#/components/schemas/WebApi.Calendar.Models.RepetitionForCreationDto"
+      },
+      "tagIds": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "checklist": {
+        "$ref": "#/components/schemas/WebApi.Calendar.Models.ChecklistForCreationDto"
+      },
+      "hasTimedSubtasks": {
+        "type": "boolean",
+        "description": "Marks the activity as a \"routine\", where every sub-task runs on its own timer.\n            \nThe flag decides: set it and every checklist item must carry a\nWebApi.Calendar.Models.ChecklistItemForCreationDto.Duration (400 otherwise); leave it out and the durations\nare dropped, even the ones the request sent."
+      },
+      "origin": {
+        "$ref": "#/components/schemas/WebApi.Data.Models.ContentOriginType"
+      },
+      "showInRecentActivities": {
+        "type": "boolean"
+      },
+      "calendarId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "externalEventId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "grouping": {
+        "$ref": "#/components/schemas/WebApi.Core.Calendar.Models.Activities.ActivityGroupingDto"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Calendar.Models.InsertionType": {
+    "enum": [
+      "Scheduled",
+      "Play"
+    ],
+    "type": "string"
+  },
+  "WebApi.Data.Calendar.Models.PreconfiguredRepetitionType": {
+    "enum": [
+      "noRepeat",
+      "daily",
+      "weekdays",
+      "weekly",
+      "everySecondWeek",
+      "monthly",
+      "yearly",
+      "custom",
+      "weekendOnly"
+    ],
+    "type": "string"
+  },
+  "WebApi.Calendar.Models.RepetitionForCreationDto": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Entities.RepetitionEntityType"
+      },
+      "interval": {
+        "type": "integer",
+        "description": "Weeks/days/months/years between occurrences. For weekly repeats this replaces the obsolete\nWebApi.Calendar.Models.RepetitionForCreationDto.WeeklyFrequency: when a caller sends only that field, its value is used here.",
+        "format": "int32"
+      },
+      "byMonth": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "weeklyFrequency": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "format": "int32",
+        "deprecated": true
+      },
+      "weeklyDays": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/WebApi.Data.Common.Models.Weekdays"
+        }
+      },
+      "monthlyDays": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "amountOfRepetitions": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "description": "Setting this field to anything other than 0 calculates the EndDate from the repetition settings chosen",
+        "format": "int32"
+      },
+      "firstDay": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "By default the start time of the repeated activity is used. Setting FirstDay overwrites the start time.",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "lastDay": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "description": "LastDay is not required, and should only be sent if the user sets a specific end date for the repetition. Should not be used together with AmountOfRepetitions.",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "daily": {
+        "type": "boolean"
+      },
+      "weekly": {
+        "type": "boolean"
+      },
+      "monthly": {
+        "type": "boolean"
+      },
+      "yearly": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false,
+    "description": "NOTE: The settings chosen for custom Weekly and Monthly repetitions will only be used if the RecurrenceType sent is true.\nFirstDay, LastDay and AmountOfRepetitions will always be used\n\nFor the boolean fields Weekly and Monthly:\n- Please send exactly one of these as true\n            \nIf the chosen repetition type is weekly:\n- WeeklyFrequency and WeeklyDays should be sent.\n- Default values if left empty are WeeklyFrequency = 1 (every week) and WeeklyDays = All days\n            \nIf the chosen repetition type is monthly\n- MonthlyDays should be sent\n- Default value for days is the current day of this month only"
+  },
+  "WebApi.Data.Calendar.Entities.RepetitionEntityType": {
+    "enum": [
+      "Daily",
+      "Weekly",
+      "Monthly",
+      "Yearly"
+    ],
+    "type": "string"
+  },
+  "WebApi.Data.Common.Models.Weekdays": {
+    "enum": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "type": "string"
+  },
+  "WebApi.Calendar.Models.ChecklistForCreationDto": {
+    "required": [
+      "checklistItems"
+    ],
+    "type": "object",
+    "properties": {
+      "checklistItems": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WebApi.Calendar.Models.ChecklistItemForCreationDto"
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Calendar.Models.ChecklistItemForCreationDto": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "index": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "isChecked": {
+        "type": "boolean"
+      },
+      "duration": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "description": "Timer length for this sub-task in seconds. Required on every item when the activity sets\nWebApi.Calendar.Models.ActivityForCreationDto.HasTimedSubtasks, and ignored (stored as null) when it does not.",
+        "format": "int32"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Models.ContentOriginType": {
+    "enum": [
+      "TiimoPremade",
+      "ExternalCalendar"
+    ],
+    "type": "string"
+  },
+  "WebApi.Core.Calendar.Models.Activities.ActivityGroupingDto": {
+    "type": "object",
+    "properties": {
+      "groupingType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Entities.ActivityGroupingType"
+      },
+      "groupingLabel": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Entities.ActivityGroupingLabel"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Calendar.Entities.ActivityGroupingType": {
+    "enum": [
+      "TimeOfDay"
+    ],
+    "type": "string"
+  },
+  "WebApi.Data.Calendar.Entities.ActivityGroupingLabel": {
+    "enum": [
+      "Morning",
+      "Day",
+      "Evening"
+    ],
+    "type": "string"
+  },
+  "WebApi.Calendar.Models.ActivityForUpdateDto": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "startTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "endTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "duration": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "isAllDay": {
+        "type": "boolean"
+      },
+      "type": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.InsertionType"
+      },
+      "sortPriority": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "description": "If left null, it will be autofilled with the profiles max value + 10",
+        "format": "int32"
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "checklist": {
+        "$ref": "#/components/schemas/WebApi.Calendar.Models.ChecklistForUpdateDto"
+      },
+      "hasTimedSubtasks": {
+        "type": "boolean",
+        "description": "Marks the activity as a \"routine\", where every sub-task runs on its own timer.\n            \nLike the rest of this request it replaces what is stored, and it decides: set it and every checklist\nitem must carry a WebApi.Calendar.Models.ChecklistItemForUpdateDto.Duration (400 otherwise); leave it out and\nthe timers are cleared, even if the request still sends the durations."
+      },
+      "recurrenceType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.PreconfiguredRepetitionType"
+      },
+      "repetition": {
+        "$ref": "#/components/schemas/WebApi.Calendar.Models.RepetitionForCreationDto"
+      },
+      "tagIds": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "allowEarlyStart": {
+        "type": "boolean"
+      },
+      "allowEarlyEnd": {
+        "type": "boolean"
+      },
+      "calendarId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "externalEventId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "taskEnrichmentId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "grouping": {
+        "$ref": "#/components/schemas/WebApi.Core.Calendar.Models.Activities.ActivityGroupingDto"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Calendar.Models.ChecklistForUpdateDto": {
+    "required": [
+      "checklistItems"
+    ],
+    "type": "object",
+    "properties": {
+      "checklistId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "checklistItems": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WebApi.Calendar.Models.ChecklistItemForUpdateDto"
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Calendar.Models.ChecklistItemForUpdateDto": {
+    "required": [
+      "checklistItemId"
+    ],
+    "type": "object",
+    "properties": {
+      "checklistItemId": {
+        "type": "string",
+        "description": "If you want to add a new item, leave this one blank",
+        "format": "uuid"
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "iconType": {
+        "$ref": "#/components/schemas/WebApi.Data.Icons.Models.IconType"
+      },
+      "backgroundColor": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "index": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "isChecked": {
+        "type": "boolean"
+      },
+      "duration": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "description": "Timer length for this sub-task in seconds. Required on every item when the activity sets\nWebApi.Calendar.Models.ActivityForUpdateDto.HasTimedSubtasks, and ignored (stored as null) when it does not.",
+        "format": "int32"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Calendar.Commands.CreateActivityAction.Command": {
+    "required": [
+      "activityId"
+    ],
+    "type": "object",
+    "properties": {
+      "activityId": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "parsedActivityId": {
+        "type": "string",
+        "readOnly": true,
+        "example": {
+          "Id": "93fa8ec4-d370-4850-8bb7-b3c9ab808403",
+          "Date": "2026-10-06T00:00:00+00:00"
+        }
+      },
+      "actionType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.ActivityActionType"
+      },
+      "actionTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "eventType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.ActivityActionType"
+      },
+      "eventTime": {
+        "type": "string",
+        "description": "Legacy support -- please use ActionTime instead",
+        "format": "date-time",
+        "writeOnly": true,
+        "example": "2026-10-06T02:35:40"
+      },
+      "instanceDate": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2026-10-06T02:35:40"
+      },
+      "duration": {
+        "type": [
+          "null",
+          "integer"
+        ],
+        "format": "int32"
+      },
+      "externalEventId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "calendarId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "insertionType": {
+        "$ref": "#/components/schemas/WebApi.Data.Calendar.Models.InsertionType"
+      }
+    },
+    "additionalProperties": false
+  },
+  "WebApi.Data.Calendar.Models.ActivityActionType": {
+    "enum": [
+      "StartedEarly",
+      "EndedEarly",
+      "PlayStarted",
+      "Paused",
+      "Resumed",
+      "Reset",
+      "PlayFinished",
+      "Started",
+      "Ended",
+      "Snooze",
+      "Completed",
+      "Restart"
+    ],
+    "type": "string"
+  }
+}
