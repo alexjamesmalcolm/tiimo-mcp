@@ -30,9 +30,9 @@ This is an unofficial, **single-owner** integration, not a shared service. All a
 Set `TIIMO_READ_ONLY=true` to expose only the six read tools. UUIDs come from Tiimo reads; estimates are **minutes of work**, converted to API seconds. Scheduling tools accept exactly one of these choices:
 
 - `start`: an RFC3339 date-time with its UTC offset (for example, `2026-10-07T10:00:00-04:00`). New York switches offsets with daylight saving time; choose the offset for the date being scheduled.
-- `date` plus `timeOfDay`: a profile-local calendar date (`YYYY-MM-DD`) and one of `Anytime`, `Morning`, `Afternoon`, or `Evening`. Tiimo's API labels Afternoon as `Day`; this server sends no `grouping` for Anytime because the API schema has no Anytime enum.
+- `date` plus `timeOfDay`: a profile-local calendar date (`YYYY-MM-DD`) and one of `Anytime`, `Morning`, `Afternoon`, or `Evening`. Tiimo's API labels Afternoon as `Day`; this server sends `grouping: null` for Anytime so Tiimo does not default it to Morning.
 
-The API body mapping is covered by local MCP and HTTP-mock tests. Confirm the Anytime display and all four choices with a live Tiimo create/read/delete round-trip before relying on them; a live authenticated write was not available during implementation.
+The API body mapping is covered by local MCP and HTTP-mock tests. A live Tiimo round-trip confirmed Morning, Afternoon (`Day`), and Evening groupings. It also showed that omitting grouping for Anytime defaults a converted task to Morning; the explicit null in this change addresses that behavior and should be confirmed in the deployed connector.
 
 Tiimo's task API does not expose a due-date field. Notes can record a deadline, but this does not create a native deadline. A list read may return grouped tasks; results retain Tiimo's original response structure. `create_activity` creates a separate item; use `schedule_task` to move an existing task.
 

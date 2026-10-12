@@ -132,6 +132,9 @@ func TestNativeSchedulePreservesChecklist(t *testing.T) {
 	if path != "/api/profiles/"+testProfile+"/todo-tasks/convert/"+testTask || body["description"] != "Read first" || body["duration"] != 1200.0 || body["endTime"] != "2026-10-07T10:20:00-04:00" {
 		t.Fatalf("bad conversion: %s %#v", path, body)
 	}
+	if _, ok := body["grouping"]; ok {
+		t.Fatalf("timestamp scheduling should leave grouping unset: %#v", body["grouping"])
+	}
 	checklist := body["checklist"].(map[string]any)["checklistItems"].([]any)[0].(map[string]any)
 	if checklist["isChecked"] != true || checklist["backgroundColor"] != "#abcdef" {
 		t.Fatalf("checklist lost: %#v", checklist)
@@ -176,8 +179,12 @@ func TestScheduleTaskSupportsAllTimeOfDayChoices(t *testing.T) {
 			if writes != 1 || body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["duration"] != 600.0 {
 				t.Fatalf("unexpected conversion body: writes=%d body=%#v", writes, body)
 			}
-			if !reflect.DeepEqual(body["grouping"], tt.grouping) {
-				t.Fatalf("grouping = %#v; want %#v", body["grouping"], tt.grouping)
+			gotGrouping, hasGrouping := body["grouping"]
+			if !hasGrouping {
+				t.Fatal("date plus timeOfDay must send grouping explicitly, including null for Anytime")
+			}
+			if !reflect.DeepEqual(gotGrouping, tt.grouping) {
+				t.Fatalf("grouping = %#v; want %#v", gotGrouping, tt.grouping)
 			}
 		})
 	}
@@ -218,8 +225,12 @@ func TestCreateActivitySupportsAllTimeOfDayChoices(t *testing.T) {
 			if body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["isAllDay"] != false {
 				t.Fatalf("unexpected activity body: %#v", body)
 			}
-			if !reflect.DeepEqual(body["grouping"], tt.grouping) {
-				t.Fatalf("grouping = %#v; want %#v", body["grouping"], tt.grouping)
+			gotGrouping, hasGrouping := body["grouping"]
+			if !hasGrouping {
+				t.Fatal("date plus timeOfDay must send grouping explicitly, including null for Anytime")
+			}
+			if !reflect.DeepEqual(gotGrouping, tt.grouping) {
+				t.Fatalf("grouping = %#v; want %#v", gotGrouping, tt.grouping)
 			}
 		})
 	}
@@ -331,8 +342,12 @@ func TestRescheduleActivitySetsOrClearsTimeOfDay(t *testing.T) {
 		if err != nil || res.IsError {
 			t.Fatalf("reschedule %s: %v %#v", tt.name, err, res)
 		}
-		if !reflect.DeepEqual(body["grouping"], tt.wantGrouping) {
-			t.Fatalf("%s grouping = %#v; want %#v", tt.name, body["grouping"], tt.wantGrouping)
+		gotGrouping, hasGrouping := body["grouping"]
+		if !hasGrouping {
+			t.Fatalf("%s should send grouping explicitly to clear or set time of day", tt.name)
+		}
+		if !reflect.DeepEqual(gotGrouping, tt.wantGrouping) {
+			t.Fatalf("%s grouping = %#v; want %#v", tt.name, gotGrouping, tt.wantGrouping)
 		}
 	}
 }
