@@ -100,7 +100,11 @@ func TestStreamableHTTPHandshake(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer cs.Close()
+	defer func() {
+		if err := cs.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	v, e := cs.ListTools(context.Background(), nil)
 	if e != nil || len(v.Tools) != 6 {
 		t.Fatalf("HTTP list: %v %#v", e, v)
