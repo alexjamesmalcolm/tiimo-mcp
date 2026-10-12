@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -225,9 +226,7 @@ func scheduleInputSchema(extra map[string]*jsonschema.Schema, required []string)
 		"date":      {Type: "string", Format: "date", Description: "Calendar date in the Tiimo profile's local timezone. Use with timeOfDay instead of start."},
 		"timeOfDay": {Type: "string", Enum: []any{"Anytime", "Morning", "Afternoon", "Evening"}, Description: "Time-of-day choice. Use with date instead of start."},
 	}
-	for key, value := range extra {
-		props[key] = value
-	}
+	maps.Copy(props, extra)
 
 	return &jsonschema.Schema{
 		Type:                 "object",
@@ -249,8 +248,6 @@ func scheduleInputSchema(extra map[string]*jsonschema.Schema, required []string)
 		},
 	}
 }
-
-func intPtr(v int) *int { return &v }
 
 // activityTimes resolves either an explicit instant or a date plus daypart.
 // Tiimo's wire grouping uses Day for the UI's Afternoon. The API contract has
@@ -450,7 +447,7 @@ func New(c *tiimo.Client) *mcp.Server {
 		return c.Do(ctx, "DELETE", p+"/todo-tasks/"+a.TaskID, nil)
 	})
 	bindWithSchema(s, "create_activity", "Create a separate scheduled Tiimo activity. Choose either start (an RFC3339 date-time with timezone) or date plus timeOfDay (Anytime, Morning, Afternoon, Evening). This does not move or delete any inbox task; avoid duplicates.", false, false, scheduleInputSchema(map[string]*jsonschema.Schema{
-		"title":           {Type: "string", MinLength: intPtr(1)},
+		"title":           {Type: "string", MinLength: new(1)},
 		"durationMinutes": {Type: "integer"},
 		"description":     {Type: "string"},
 		"emoji":           {Type: "string"},
