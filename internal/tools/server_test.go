@@ -135,6 +135,9 @@ func TestNativeSchedulePreservesChecklist(t *testing.T) {
 	if _, ok := body["grouping"]; ok {
 		t.Fatalf("timestamp scheduling should leave grouping unset: %#v", body["grouping"])
 	}
+	if body["type"] != "Scheduled" {
+		t.Fatalf("timestamp scheduling type = %#v; want Scheduled", body["type"])
+	}
 	checklist := body["checklist"].(map[string]any)["checklistItems"].([]any)[0].(map[string]any)
 	if checklist["isChecked"] != true || checklist["backgroundColor"] != "#abcdef" {
 		t.Fatalf("checklist lost: %#v", checklist)
@@ -143,13 +146,14 @@ func TestNativeSchedulePreservesChecklist(t *testing.T) {
 
 func TestScheduleTaskSupportsAllTimeOfDayChoices(t *testing.T) {
 	tests := []struct {
-		name     string
-		grouping any
+		name         string
+		grouping     any
+		activityType string
 	}{
-		{name: "Anytime", grouping: nil},
-		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}},
-		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
-		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}},
+		{name: "Anytime", grouping: nil, activityType: "Play"},
+		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}, activityType: "Play"},
+		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}, activityType: "Play"},
+		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}, activityType: "Play"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -179,6 +183,9 @@ func TestScheduleTaskSupportsAllTimeOfDayChoices(t *testing.T) {
 			if writes != 1 || body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["duration"] != 600.0 {
 				t.Fatalf("unexpected conversion body: writes=%d body=%#v", writes, body)
 			}
+			if body["type"] != tt.activityType {
+				t.Fatalf("activity type = %#v; want %q", body["type"], tt.activityType)
+			}
 			gotGrouping, hasGrouping := body["grouping"]
 			if !hasGrouping {
 				t.Fatal("date plus timeOfDay must send grouping explicitly, including null for Anytime")
@@ -192,13 +199,14 @@ func TestScheduleTaskSupportsAllTimeOfDayChoices(t *testing.T) {
 
 func TestCreateActivitySupportsAllTimeOfDayChoices(t *testing.T) {
 	tests := []struct {
-		name     string
-		grouping any
+		name         string
+		grouping     any
+		activityType string
 	}{
-		{name: "Anytime", grouping: nil},
-		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}},
-		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
-		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}},
+		{name: "Anytime", grouping: nil, activityType: "Play"},
+		{name: "Morning", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Morning"}, activityType: "Play"},
+		{name: "Afternoon", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}, activityType: "Play"},
+		{name: "Evening", grouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Evening"}, activityType: "Play"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -224,6 +232,9 @@ func TestCreateActivitySupportsAllTimeOfDayChoices(t *testing.T) {
 			}
 			if body["startTime"] != "2026-10-13T00:00:00" || body["endTime"] != "2026-10-13T00:10:00" || body["isAllDay"] != false {
 				t.Fatalf("unexpected activity body: %#v", body)
+			}
+			if body["type"] != tt.activityType {
+				t.Fatalf("activity type = %#v; want %q", body["type"], tt.activityType)
 			}
 			gotGrouping, hasGrouping := body["grouping"]
 			if !hasGrouping {
@@ -298,6 +309,9 @@ func TestReschedulePreservesChecklistAndRejectsRepeats(t *testing.T) {
 	if body["description"] != "keep" || body["endTime"] != "2026-10-07T12:30:00-04:00" || body["allowEarlyStart"] != true {
 		t.Fatalf("details lost: %#v", body)
 	}
+	if body["type"] != "Scheduled" {
+		t.Fatalf("timestamp reschedule type = %#v; want Scheduled", body["type"])
+	}
 	item := body["checklist"].(map[string]any)["checklistItems"].([]any)[0].(map[string]any)
 	if item["isChecked"] != true {
 		t.Fatal("checklist completion lost")
@@ -332,15 +346,19 @@ func TestRescheduleActivitySetsOrClearsTimeOfDay(t *testing.T) {
 	for _, tt := range []struct {
 		name         string
 		wantGrouping any
+		wantType     string
 	}{
-		{name: "Afternoon", wantGrouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}},
-		{name: "Anytime", wantGrouping: nil},
+		{name: "Afternoon", wantGrouping: map[string]any{"groupingType": "TimeOfDay", "groupingLabel": "Day"}, wantType: "Play"},
+		{name: "Anytime", wantGrouping: nil, wantType: "Play"},
 	} {
 		res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "reschedule_activity", Arguments: map[string]any{
 			"activityId": testTask, "date": "2026-10-13", "timeOfDay": tt.name,
 		}})
 		if err != nil || res.IsError {
 			t.Fatalf("reschedule %s: %v %#v", tt.name, err, res)
+		}
+		if body["type"] != tt.wantType {
+			t.Fatalf("%s type = %#v; want %q", tt.name, body["type"], tt.wantType)
 		}
 		gotGrouping, hasGrouping := body["grouping"]
 		if !hasGrouping {
