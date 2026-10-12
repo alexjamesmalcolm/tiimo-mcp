@@ -45,8 +45,6 @@ jobs:
       - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.14.0
-          # The current codebase intentionally ignores cleanup/rollback errors.
-          args: --disable=errcheck
 
   vulnerabilities:
     name: Vulnerability scan
