@@ -57,7 +57,11 @@ func TestSQLiteTokensSurviveRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer p.Close()
+	t.Cleanup(func() {
+		if err := p.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	valid, err := p.store.valid(ctx, digest(nextAccess), cfg.PublicURL+"/mcp")
 	if err != nil || !valid {
 		t.Fatal("rotated access not persisted", err)
@@ -84,7 +88,11 @@ func TestSQLiteStoresHashesAndPrivateFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	n := 0
 	for rows.Next() {
 		var hash string
