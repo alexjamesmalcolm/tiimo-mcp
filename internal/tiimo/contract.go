@@ -3,6 +3,7 @@ package tiimo
 import (
 	_ "embed"
 	"encoding/json"
+	"maps"
 )
 
 //go:embed schemas.json
@@ -70,9 +71,7 @@ func UpdateTaskBody(task Object, changes Object) Object {
 	if grouping, ok := task["grouping"].(map[string]any); ok {
 		task["currentGrouping"] = grouping["groupingType"]
 	}
-	for k, v := range changes {
-		task[k] = v
-	}
+	maps.Copy(task, changes)
 	return Project("WebApi.Todo.Models.UpdateTodoTaskRequest", task)
 }
 func Clone(o Object) Object {

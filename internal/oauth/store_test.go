@@ -164,9 +164,8 @@ func TestSQLiteRefreshRollbackAndConcurrentReplay(t *testing.T) {
 	}
 	var wg sync.WaitGroup
 	results := make(chan error, 2)
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func() { defer wg.Done(); _, _, err := p.store.issue(ctx, resource, digest(refresh)); results <- err }()
+	for range 2 {
+		wg.Go(func() { ; _, _, err := p.store.issue(ctx, resource, digest(refresh)); results <- err })
 	}
 	wg.Wait()
 	close(results)

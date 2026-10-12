@@ -64,7 +64,7 @@ func main() {
 	var h http.Handler = handler
 	if public != "" {
 		redirects := []string{}
-		for _, v := range strings.Split(os.Getenv("OAUTH_REDIRECT_URIS"), ",") {
+		for v := range strings.SplitSeq(os.Getenv("OAUTH_REDIRECT_URIS"), ",") {
 			if strings.TrimSpace(v) != "" {
 				redirects = append(redirects, strings.TrimSpace(v))
 			}
