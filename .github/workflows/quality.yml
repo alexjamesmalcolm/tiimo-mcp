@@ -1,0 +1,61 @@
+name: Go quality
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  format-and-modernize:
+    name: Format and modernize
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Check gofmt
+        run: |
+          files=$(git ls-files '*.go')
+          if [ -n "$(gofmt -l $files)" ]; then
+            gofmt -d $files
+            exit 1
+          fi
+      - name: Check goimports
+        run: |
+          go install golang.org/x/tools/cmd/goimports@v0.52.0
+          files=$(git ls-files '*.go')
+          if [ -n "$(goimports -l $files)" ]; then
+            goimports -d $files
+            exit 1
+          fi
+      - name: Check Go modernizations
+        run: go fix -diff ./...
+      - name: Check module files
+        run: go mod tidy -diff
+
+  lint:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+
+  vulnerabilities:
+    name: Vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+      - name: Scan reachable vulnerabilities
+        run: govulncheck ./...

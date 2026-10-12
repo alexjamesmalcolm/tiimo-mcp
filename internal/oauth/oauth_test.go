@@ -15,7 +15,11 @@ func TestOAuthPKCEAndRefresh(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer p.Close()
+	t.Cleanup(func() {
+		if err := p.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	mux := http.NewServeMux()
 	p.Register(mux)
 	mux.Handle("/mcp", p.Protect(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) })))

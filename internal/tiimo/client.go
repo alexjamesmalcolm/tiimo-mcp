@@ -55,7 +55,7 @@ func (c *Client) Lock(id string) func() {
 	return m.Unlock
 }
 
-func (c *Client) Do(ctx context.Context, method, path string, body any) (any, error) {
+func (c *Client) Do(ctx context.Context, method, path string, body any) (result any, retErr error) {
 	if c.ReadOnly && method != http.MethodGet {
 		return nil, errors.New("writes are disabled by TIIMO_READ_ONLY")
 	}
@@ -90,7 +90,12 @@ func (c *Client) Do(ctx context.Context, method, path string, body any) (any, er
 		}
 		return nil, errors.New("tiimo request failed or timed out")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if closeErr := res.Body.Close(); closeErr != nil && retErr == nil {
+			result = nil
+			retErr = errors.New("cannot close Tiimo response body")
+		}
+	}()
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		switch res.StatusCode {
 		case 401:
