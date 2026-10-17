@@ -66,6 +66,14 @@ TIIMO_TOKEN_FILE=/absolute/path/tiimo.token ./bin/tiimo-mcp -doctor
 
 The doctor reads `/api/profiles` and prints its response. It does not create or update tasks.
 
+### Optional live API test
+
+This credentialed integration test sends one read-only `GET /api/profiles` request. It is excluded from ordinary `go test ./...` runs by the `tiimo_live` build tag. Set either `TIIMO_TOKEN` or `TIIMO_TOKEN_FILE` locally; keep the token out of source control and chat.
+
+```sh
+go test -tags=tiimo_live ./internal/tiimo -run TestLiveTiimoProfiles -v
+```
+
 ## Railway and GitHub
 
 Copy this directory into your repository root, or configure Railway's Root Directory to this directory if it is a subfolder. The included GitHub workflow runs tests, race detection, vet, and a CGO build. No repository has been created or pushed by this project.
