@@ -82,6 +82,7 @@ func (c *Client) Do(ctx context.Context, method, path string, body any) (result 
 	req.Header.Set("Accept-Language", "en-GB")
 	req.Header.Set("Origin", "https://webapp.tiimoapp.com")
 	req.Header.Set("Referer", "https://webapp.tiimoapp.com/")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:158.0) Gecko/20100101 Firefox/158.0")
 	if method == http.MethodGet {
 		req.Header.Set("Prefer", "safe")
 	}
