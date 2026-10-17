@@ -78,8 +78,13 @@ func (c *Client) Do(ctx context.Context, method, path string, body any) (result 
 		return nil, errors.New("invalid request")
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept", "application/json, text/plain, */*")
 	req.Header.Set("Accept-Language", "en-GB")
+	req.Header.Set("Origin", "https://webapp.tiimoapp.com")
+	req.Header.Set("Referer", "https://webapp.tiimoapp.com/")
+	if method == http.MethodGet {
+		req.Header.Set("Prefer", "safe")
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
